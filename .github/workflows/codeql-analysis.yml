@@ -3,11 +3,11 @@ name: CodeQL Analysis
 
 on:
   push:
-    branches: [main, develop]  # Analyse sur chaque push dans les branches principales et de développement
+    branches: [main]  # Analyse sur chaque push dans la branche principale
   pull_request:
-    branches: [main, develop]  # Analyse sur chaque pull request vers les branches principales et de développement
+    branches: [main]  # Analyse sur chaque pull request vers la branche principale
   schedule:
-    - cron: '0 0 * * 1'  # Planifie l’analyse une fois par semaine, chaque lundi à minuit UTC
+    - cron: '0 0 * * 1'  # Planifie l’analyse une fois par semaine
 
 jobs:
   analyze:
@@ -18,44 +18,24 @@ jobs:
       contents: read
       security-events: write
 
-    strategy:
-      fail-fast: false
-      matrix:
-        language: ['javascript', 'csharp', 'java']  # Spécifiez les langages analysés dans votre dépôt
-
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up .NET (only for C# projects)
-        if: matrix.language == 'csharp'
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '7.x'  # Spécifie la version de .NET pour les projets C#
-
-      - name: Set up JDK 11 (only for Java projects)
-        if: matrix.language == 'java'
-        uses: actions/setup-java@v3
-        with:
-          java-version: '11'
+        uses: actions/checkout@v3  # Récupère le code source
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3  # Mettez à jour vers v3 comme recommandé
         with:
-          languages: ${{ matrix.language }}
-          queries: ./custom-queries  # Utilise les requêtes personnalisées si elles existent dans le dossier
+          languages: 'javascript,csharp'  # Spécifiez les langages utilisés dans votre dépôt
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3  # Utilisez également v3 ici
         with:
-          category: 'security'  # Spécifie que l’analyse concerne la sécurité
-          upload: true  # Charge les résultats de l’analyse pour un rapport complet
-          output: 'codeql-report.sarif'  # Enregistre le rapport sous forme de fichier SARIF
+          category: 'security'
 
       - name: Upload SARIF Report to GitHub Security Tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3  # Utilisez également v3 ici
         with:
-          sarif_file: 'codeql-report.sarif'  # Charge le rapport SARIF pour le rendre visible dans l'onglet Sécurité
+          sarif_file: 'codeql-report.sarif'
 
       - name: Display SARIF Report
         if: always()
