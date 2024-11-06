@@ -22,21 +22,43 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3  # Récupère le code source
 
-      - name: Set up .NET (only for C# projects)
+      # Setup for C# (.NET)
+      - name: Set up .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '7.x'  # Spécifie la version de .NET pour les projets C#
+          dotnet-version: '7.x'  # Spécifie la version de .NET
 
       - name: Build C# project
-        run: dotnet build --configuration Release  # Compile le projet en mode Release
+        run: dotnet build --configuration Release --no-incremental
+        working-directory: './path/to/your/csharp/project'  # Indique le chemin correct du projet C#
 
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3  # Mise à jour vers v3
+      # Setup for Java
+      - name: Set up JDK
+        uses: actions/setup-java@v3
         with:
-          languages: 'javascript,csharp'  # Spécifiez les langages utilisés dans votre dépôt
+          distribution: 'temurin'  # Utilisation de l'OpenJDK distribution Temurin
+          java-version: '17'       # Version Java requise pour votre projet
 
+      - name: Build Java project
+        run: |
+          ./gradlew build || mvn clean install  # Utilise Gradle ou Maven pour construire le projet Java
+        working-directory: './path/to/your/java/project'  # Indique le chemin correct du projet Java
+
+      # Setup for Python (no specific build needed)
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'  # Spécifie la version de Python
+          
+      # Initialize CodeQL for all specified languages
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: 'javascript,csharp,python,java'  # Ajoute C#, Python, et Java
+
+      # Perform the CodeQL Analysis
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3  # Utilisez également v3 ici
+        uses: github/codeql-action/analyze@v3
         with:
           category: 'security'
 
