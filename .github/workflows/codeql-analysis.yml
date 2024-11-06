@@ -22,8 +22,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3  # Récupère le code source
 
+      - name: Set up .NET (only for C# projects)
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.x'  # Spécifie la version de .NET pour les projets C#
+
+      - name: Build C# project
+        run: dotnet build --configuration Release  # Compile le projet en mode Release
+
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3  # Mettez à jour vers v3 comme recommandé
+        uses: github/codeql-action/init@v3  # Mise à jour vers v3
         with:
           languages: 'javascript,csharp'  # Spécifiez les langages utilisés dans votre dépôt
 
@@ -33,7 +41,7 @@ jobs:
           category: 'security'
 
       - name: Upload SARIF Report to GitHub Security Tab
-        uses: github/codeql-action/upload-sarif@v3  # Utilisez également v3 ici
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'codeql-report.sarif'
 
