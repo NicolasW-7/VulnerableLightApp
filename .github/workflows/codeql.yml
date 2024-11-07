@@ -91,45 +91,45 @@ jobs:
 
       name: CodeQL with Artifacts
 
-on:
-  push:
-    branches: [ "main" ]
-  
-jobs:
-  analyze:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    # Exemple de génération d'un fichier à télécharger
-    - name: Generate build artifact
-      run: |
-        echo "Generé un fichier" > build_output.txt
-        cat build_output.txt
-
-    # Télécharger l'artefact généré
-    - name: Upload build artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: build-artifact
-        path: build_output.txt
-
-    # Étape pour récupérer l'artefact dans une étape suivante
-    - name: Download build artifact
-      uses: actions/download-artifact@v3
-      with:
-        name: build-artifact
-
-    # Initialiser CodeQL et analyser le code
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
-      with:
-        languages: 'javascript'
-
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
-
-      with:
-        category: "/language:${{matrix.language}}"
+      on:
+        push:
+          branches: [ "main" ]
+        
+      jobs:
+        analyze:
+          runs-on: ubuntu-latest
+      
+          steps:
+          - name: Checkout repository
+            uses: actions/checkout@v4
+      
+          # Exemple de génération d'un fichier à télécharger
+          - name: Generate build artifact
+            run: |
+              echo "Generé un fichier" > build_output.txt
+              cat build_output.txt
+      
+          # Télécharger l'artefact généré
+          - name: Upload build artifact
+            uses: actions/upload-artifact@v3
+            with:
+              name: build-artifact
+              path: build_output.txt
+      
+          # Étape pour récupérer l'artefact dans une étape suivante
+          - name: Download build artifact
+            uses: actions/download-artifact@v3
+            with:
+              name: build-artifact
+      
+          # Initialiser CodeQL et analyser le code
+          - name: Initialize CodeQL
+            uses: github/codeql-action/init@v3
+            with:
+              languages: 'javascript'
+      
+          - name: Perform CodeQL Analysis
+            uses: github/codeql-action/analyze@v3
+      
+            with:
+              category: "/language:${{matrix.language}}"
