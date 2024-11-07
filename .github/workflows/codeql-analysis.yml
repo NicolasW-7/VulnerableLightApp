@@ -1,74 +1,64 @@
-# .github/workflows/codeql-analysis.yml
-name: CodeQL Analysis
+name: "Code scanning - action"
 
 on:
   push:
-    branches: [main]  # Analyse sur chaque push dans la branche principale
+    branches:
+      - main
+      - 'rc/*'
   pull_request:
-    branches: [main]  # Analyse sur chaque pull request vers la branche principale
+    branches:
+      - main
+      - 'rc/*'
+    paths:
+      - 'csharp/**'
+      - '.github/codeql/**'
+      - '.github/workflows/codeql-analysis.yml'
   schedule:
-    - cron: '0 0 * * 1'  # Planifie l’analyse une fois par semaine
+    - cron: '0 9 * * 1'
 
 jobs:
-  analyze:
-    name: Analyze code with CodeQL
+  CodeQL-Build:
+
     runs-on: ubuntu-latest
+
     permissions:
-      actions: read
       contents: read
       security-events: write
+      pull-requests: read
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3  # Récupère le code source
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.101
 
-      # Setup for C# (.NET)
-      - name: Set up .NET
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '7.x'  # Spécifie la version de .NET
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Build C# project
-        run: dotnet build --configuration Release --no-incremental
-        working-directory: './path/to/your/csharp/project'  # Indique le chemin correct du projet C#
+    # Initializes the CodeQL tools for scanning.
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@main
+      # Override language selection by uncommenting this and choosing your languages
+      with:
+        languages: csharp
+        config-file: ./.github/codeql/codeql-config.yml
 
-      # Setup for Java
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'  # Utilisation de l'OpenJDK distribution Temurin
-          java-version: '17'       # Version Java requise pour votre projet
+    # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
+    # If this step fails, then you should remove it and run the build manually (see below)
+    #- name: Autobuild
+    #  uses: github/codeql-action/autobuild@main
 
-      - name: Build Java project
-        run: |
-          ./gradlew build || mvn clean install  # Utilise Gradle ou Maven pour construire le projet Java
-        working-directory: './path/to/your/java/project'  # Indique le chemin correct du projet Java
+    # ℹ️ Command-line programs to run using the OS shell.
+    # 📚 https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
 
-      # Setup for Python (no specific build needed)
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'  # Spécifie la version de Python
-          
-      # Initialize CodeQL for all specified languages
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: 'javascript,csharp,python,java'  # Ajoute C#, Python, et Java
+    # ✏️ If the Autobuild fails above, remove it and uncomment the following three lines
+    #    and modify them (or add more) to build your code if your project
+    #    uses a compiled language
 
-      # Perform the CodeQL Analysis
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-        with:
-          category: 'security'
+    - run: |
+       cd csharp
+       dotnet tool restore
+       dotnet build .
 
-      - name: Upload SARIF Report to GitHub Security Tab
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: 'codeql-report.sarif'
-
-      - name: Display SARIF Report
-        if: always()
-        run: |
-          echo "SARIF Report Generated:"
-          cat codeql-report.sarif
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@main
